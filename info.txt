@@ -1,0 +1,55 @@
+Plugin ID: 1354
+Plugin Version: 1.4
+Plugin Category: Statistical
+Plugin Game: Team Fortress 2
+Plugin Dependencies:	
+Approver: Antithasys
+Plugin Description: Plugin shows top players from losing team.
+Servers with this Plugin: 412 
+
+
+Win panel for losing team
+
+Description
+
+    Plugin shows top players from losing team.
+
+Features
+
+    Players with score greater than zero are shown.
+    Shows nothing if nobody scores.
+    Works in TF2 only.
+
+Screenshot
+
+
+    Screenshot from debug version.
+
+Commands & Cvars
+
+    None
+
+Installation
+
+    Place win-panel.smx in /sourcemod/plugins
+    Place win-panel.phrases.txt in /sourcemod/translations
+
+Version History
+
+    1.4 Fixed overlapping bug with mapchooser plugin.
+    1.3 Added IsVoteInProgress check.
+    1.2 Some improvements.
+    1.1 Fixed: The plug-in didn't show dead players.
+    1.0 Initial release.
+
+Notes
+
+    Thanks to O!KAK
+
+Requests
+
+    Quote:
+    Originally Posted by MrSaturn
+    We also have this short time during waiting for players where friendly fire is on. I was wondering … if you could write a plugin to show a scoreboard for player kills during waiting for players in tf2.
+    This feature implemented in attached archive win-panel-ff.zip
+    Please disable original win-panel.smx if you plan to use this mod.
