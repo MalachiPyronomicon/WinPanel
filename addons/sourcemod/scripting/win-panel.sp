@@ -7,7 +7,7 @@
 #include <mapchooser>
 #define REQUIRE_PLUGIN
 
-#define PLUGIN_VERSION "1.4"
+#define PLUGIN_VERSION "1.4.1"
 
 public Plugin:myinfo = 
 {
@@ -17,6 +17,7 @@ public Plugin:myinfo =
 	version = PLUGIN_VERSION
 };
 
+// GLOBALS
 new bool:mapchooser;
 new g_BeginScore[MAXPLAYERS + 1];
 new g_EntPlayerManager;
@@ -25,6 +26,7 @@ new g_OffsetClass;
 new g_TotalRounds;
 new Handle:g_Cvar_Maxrounds = INVALID_HANDLE;
 new Handle:g_Cvar_StartRounds = INVALID_HANDLE;
+new Handle:g_hUseChat = INVALID_HANDLE;				// Handle - Convar to choose between chat and vote-style panel
 
 public OnPluginStart()
 {
@@ -43,6 +45,8 @@ public OnPluginStart()
 	CreateConVar("sm_win_panel_version", PLUGIN_VERSION, "Plugin Version",
 		FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED |
 		FCVAR_NOTIFY | FCVAR_DONTRECORD);
+	
+	g_hUseChat = CreateConVar("sm_win_panel_usechat", "0", "Use chat instead of a panel.", FCVAR_DONTRECORD, true, 0.0, true, 1.0);
 	
 	g_Cvar_Maxrounds = FindConVar("mp_maxrounds");
 	g_Cvar_StartRounds = FindConVar("sm_mapvote_startround");
@@ -114,9 +118,12 @@ public Event_TeamPlayWinPanel(Handle:event, const String:name[],
 
 public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 {
-	if (IsVoteInProgress()) return;
-	if (CheckMaxRounds(g_TotalRounds)) return;
-	
+	new bool:bUseChat = false;
+	if (GetConVarFloat(g_hUseChat) != 0.0)
+	{
+		bUseChat = true;
+	}
+
 	new Scores[MaxClients][2];
 	new RowCount;
 	new client;
@@ -135,34 +142,64 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 	
 	SortCustom2D(Scores, MaxClients, SortScoreDesc);
 	
-	// Create and show Win Panel
-	//
-	for (new j = 1; j <= MaxClients; j++)
+	if (g_hUseChat)
 	{
-		if (IsClientInGame(j))
+		decl String:sPlayerName[MAX_NAME_LENGTH];
+		
+		// Draw three top players
+		//
+		RowCount = 0;
+		for (new n = 0; n <= 2; n++)
 		{
-			new Handle:hPanel = CreatePanel();
-			
-			Draw_PanelHeader(hPanel, DefeatedTeam, j);
-			
-			// Draw three top players
-			//
-			RowCount = 0;
-			for (new n = 0; n <= 2; n++)
+			if (Scores[n][1] > 0)
 			{
-				if (Scores[n][1] > 0)
+				if (RowCount == 0)
 				{
-					Draw_PanelPlayer(hPanel, Scores[n][1], Scores[n][0], j);
-					RowCount++;
+					PrintToChatAll("THE TOP LOSERS", n, sPlayerName, Scores[n][1]);
 				}
+				
+				GetClientName(Scores[n][0], sPlayerName, sizeof(sPlayerName));
+	
+				PrintToChatAll("%d: %s %d points", n, sPlayerName, Scores[n][1]);
+				RowCount++;
 			}
-			
-			// Don't show anything if there are not top players
-			//
-			if (RowCount > 0)
-				SendPanelToClient(hPanel, j, Handler_DoNothing, 12);
-			
-			CloseHandle(hPanel);
+		}
+
+	}
+	else
+	{
+		if (IsVoteInProgress()) return;
+		if (CheckMaxRounds(g_TotalRounds)) return;
+	
+		// Create and show Win Panel
+		//
+		for (new j = 1; j <= MaxClients; j++)
+		{
+			if (IsClientInGame(j))
+			{
+				new Handle:hPanel = CreatePanel();
+				
+				Draw_PanelHeader(hPanel, DefeatedTeam, j);
+				
+				// Draw three top players
+				//
+				RowCount = 0;
+				for (new n = 0; n <= 2; n++)
+				{
+					if (Scores[n][1] > 0)
+					{
+						Draw_PanelPlayer(hPanel, Scores[n][1], Scores[n][0], j);
+						RowCount++;
+					}
+				}
+				
+				// Don't show anything if there are not top players
+				//
+				if (RowCount > 0)
+					SendPanelToClient(hPanel, j, Handler_DoNothing, 12);
+				
+				CloseHandle(hPanel);
+			}
 		}
 	}
 }
