@@ -7,7 +7,7 @@
 #include <mapchooser>
 #define REQUIRE_PLUGIN
 
-#define PLUGIN_VERSION "1.4.1"
+#define PLUGIN_VERSION "1.4.2"
 
 public Plugin:myinfo = 
 {
@@ -155,12 +155,22 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 			{
 				if (RowCount == 0)
 				{
-					PrintToChatAll("THE TOP LOSERS", n, sPlayerName, Scores[n][1]);
+					// \x07 followed by a hex code in RRGGBB
+					if (DefeatedTeam == 2)
+					{
+						PrintToChatAll("\x07A9A9A9TOP PLAYERS ON \x07FF0000RED");
+					}
+					else
+					{
+						PrintToChatAll("\x07A9A9A9TOP PLAYERS ON \x070000FFBLU");
+					}
+						
+					PrintToChatAll("\x07A9A9A9[#] (score) (name)");
 				}
 				
 				GetClientName(Scores[n][0], sPlayerName, sizeof(sPlayerName));
 	
-				PrintToChatAll("%d: %s %d points", n, sPlayerName, Scores[n][1]);
+				PrintToChatAll("\x07A9A9A9[%d]       %d       %s", n+1, Scores[n][1], sPlayerName);
 				RowCount++;
 			}
 		}
