@@ -26,7 +26,7 @@ new g_OffsetClass;
 new g_TotalRounds;
 new Handle:g_Cvar_Maxrounds = INVALID_HANDLE;
 new Handle:g_Cvar_StartRounds = INVALID_HANDLE;
-new Handle:g_hUseChat = INVALID_HANDLE;				// Handle - Convar to choose between chat and vote-style panel
+new Handle:g_Cvar_UseChat = INVALID_HANDLE;				// Handle - Convar to choose between chat and vote-style panel
 
 public OnPluginStart()
 {
@@ -46,7 +46,7 @@ public OnPluginStart()
 		FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED |
 		FCVAR_NOTIFY | FCVAR_DONTRECORD);
 	
-	g_hUseChat = CreateConVar("sm_win_panel_usechat", "0", "Use chat instead of a panel.", FCVAR_DONTRECORD, true, 0.0, true, 1.0);
+	g_Cvar_UserChat = CreateConVar("sm_win_panel_usechat", "0", "Use chat instead of a panel.", FCVAR_DONTRECORD, true, 0.0, true, 1.0);
 	
 	g_Cvar_Maxrounds = FindConVar("mp_maxrounds");
 	g_Cvar_StartRounds = FindConVar("sm_mapvote_startround");
@@ -118,18 +118,11 @@ public Event_TeamPlayWinPanel(Handle:event, const String:name[],
 
 public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 {
-	new bool:bUseChat = false;
-	if (GetConVarFloat(g_hUseChat) != 0.0)
-	{
-		bUseChat = true;
-	}
-
 	new Scores[MaxClients][2];
 	new RowCount;
 	new client;
 	
 	// For sorting purpose, start fill Scores[][] array from zero index
-	//
 	for (new i = 0; i < MaxClients; i++)
 	{
 		client = i + 1;
@@ -142,7 +135,7 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 	
 	SortCustom2D(Scores, MaxClients, SortScoreDesc);
 	
-	if (g_hUseChat)
+	if (GetConVarBool(g_Cvar_UserChat))
 	{
 		decl String:sPlayerName[MAX_NAME_LENGTH];
 		
