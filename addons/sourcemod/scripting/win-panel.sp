@@ -116,24 +116,13 @@ public Event_TeamPlayWinPanel(Handle:event, const String:name[],
 	}
 }
 
-public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
+public Action:Timer_ShowWinPanel(Handle:timer, any:defeatedTeam)
 {
-	new Scores[MaxClients][2];
+	new scores[MaxClients][2];
 	new RowCount;
-	new client;
 	
-	// For sorting purpose, start fill Scores[][] array from zero index
-	for (new i = 0; i < MaxClients; i++)
-	{
-		client = i + 1;
-		Scores[i][0] = client;
-		if (IsClientInGame(client) && GetClientTeam(client) == DefeatedTeam)
-			Scores[i][1] = GetClientScore(client) - g_BeginScore[client];
-		else
-			Scores[i][1] = -1;
-	}
-	
-	SortCustom2D(Scores, MaxClients, SortScoreDesc);
+	CalculateScores(scores, defeatedTeam);
+	SortCustom2D(scores, MaxClients, SortScoreDesc);
 	
 	if (GetConVarBool(g_Cvar_UserChat))
 	{
@@ -144,12 +133,12 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 		RowCount = 0;
 		for (new n = 0; n <= 2; n++)
 		{
-			if (Scores[n][1] > 0)
+			if (scores[n][1] > 0)
 			{
 				if (RowCount == 0)
 				{
 					// \x07 followed by a hex code in RRGGBB
-					if (DefeatedTeam == 2)
+					if (defeatedTeam == 2)
 					{
 						PrintToChatAll("\x07A9A9A9TOP PLAYERS ON \x07FF0000RED");
 					}
@@ -161,9 +150,9 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 					PrintToChatAll("\x07A9A9A9[#] (score) (name)");
 				}
 				
-				GetClientName(Scores[n][0], sPlayerName, sizeof(sPlayerName));
+				GetClientName(scores[n][0], sPlayerName, sizeof(sPlayerName));
 	
-				PrintToChatAll("\x07A9A9A9[%d]       %d       %s", n+1, Scores[n][1], sPlayerName);
+				PrintToChatAll("\x07A9A9A9[%d]       %d       %s", n+1, scores[n][1], sPlayerName);
 				RowCount++;
 			}
 		}
@@ -182,16 +171,16 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 			{
 				new Handle:hPanel = CreatePanel();
 				
-				Draw_PanelHeader(hPanel, DefeatedTeam, j);
+				Draw_PanelHeader(hPanel, defeatedTeam, j);
 				
 				// Draw three top players
 				//
 				RowCount = 0;
 				for (new n = 0; n <= 2; n++)
 				{
-					if (Scores[n][1] > 0)
+					if (scores[n][1] > 0)
 					{
-						Draw_PanelPlayer(hPanel, Scores[n][1], Scores[n][0], j);
+						Draw_PanelPlayer(hPanel, scores[n][1], scores[n][0], j);
 						RowCount++;
 					}
 				}
@@ -205,6 +194,22 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 			}
 		}
 	}
+}
+
+CalculateScores(&scores[][], any:defeatedTeam)
+{
+	new client;
+	// For sorting purpose, start fill scores[][] array from zero index
+	for (new i = 0; i < MaxClients; i++)
+	{
+		client = i + 1;
+		scores[i][0] = client;
+		if (IsClientInGame(client) && GetClientTeam(client) == defeatedTeam)
+			scores[i][1] = GetClientScore(client) - g_BeginScore[client];
+		else
+			scores[i][1] = -1;
+	}
+
 }
 
 bool:CheckMaxRounds(roundcount)
@@ -235,11 +240,11 @@ Draw_PanelHeader(Handle:handle, team, client)
 	decl String:_teamX[6];
 	decl String:_panelTitle[128];
 	decl String:_panelFirstRow[128];
-	
+
 	Format(_teamX, sizeof(_teamX), "team%d", team);
 	Format(_panelTitle, sizeof(_panelTitle), "%T", _teamX, client);
 	Format(_panelFirstRow, sizeof(_panelFirstRow), "%T", "header", client);
-	
+
 	SetPanelTitle(handle, _panelTitle);
 	DrawPanelText(handle, " ");
 	DrawPanelText(handle, _panelFirstRow);
@@ -252,10 +257,10 @@ Draw_PanelPlayer(Handle:handle, score, client, translate)
 	decl String:_playerScore[13];
 	decl String:_playerClass[128];
 	decl String:_classX[7];
-	
+
 	// Format player name
 	GetClientName(client, _playerName, sizeof(_playerName));
-	
+
 	// Format player score
 	//
 	if (score < 10)
@@ -264,16 +269,16 @@ Draw_PanelPlayer(Handle:handle, score, client, translate)
 		Format(_playerScore, sizeof(_playerScore), " %d     ", score);
 	else
 		Format(_playerScore, sizeof(_playerScore), " %d   ", score);
-		
+
 	// Format player class
 	//
 	Format(_classX, sizeof(_classX), "class%d", GetClientClass(client));
 	Format(_playerClass, sizeof(_playerClass), "%T", _classX, translate);
-	
+
 	// Format player row
 	Format(_panelTopPlayerRow, sizeof(_panelTopPlayerRow), "%s%s%s",
 			_playerScore, _playerClass, _playerName);
-	
+
 	DrawPanelItem(handle, _panelTopPlayerRow);
 }
 
