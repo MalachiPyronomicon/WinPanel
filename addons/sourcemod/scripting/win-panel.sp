@@ -46,7 +46,7 @@ public OnPluginStart()
 			FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED |
 			FCVAR_NOTIFY | FCVAR_DONTRECORD);
 
-	g_Cvar_UserChat = CreateConVar("sm_win_panel_usechat", "0", "Use chat instead of a panel.", FCVAR_DONTRECORD, true, 0.0, true, 1.0);
+	g_Cvar_UseChat = CreateConVar("sm_win_panel_usechat", "0", "Use chat instead of a panel.", FCVAR_DONTRECORD, true, 0.0, true, 1.0);
 
 	g_Cvar_Maxrounds = FindConVar("mp_maxrounds");
 	g_Cvar_StartRounds = FindConVar("sm_mapvote_startround");
@@ -124,7 +124,7 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:defeatedTeam)
 	CalculateScores(scores, defeatedTeam);
 	SortCustom2D(scores, MaxClients, SortScoreDesc);
 
-	if (GetConVarBool(g_Cvar_UserChat))
+	if (GetConVarBool(g_Cvar_UseChat))
 	{
 		DisplayChatScores(scores, defeatedTeam, 3);
 	}
@@ -166,7 +166,7 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:defeatedTeam)
 	}
 }
 
-CalculateScores(&scores[][], any:defeatedTeam)
+CalculateScores(scores[][], any:defeatedTeam)
 {
 	new client;
 	// For sorting purpose, start fill scores[][] array from zero index
@@ -182,7 +182,7 @@ CalculateScores(&scores[][], any:defeatedTeam)
 
 }
 
-DisplayChatScores(&scores[][], defeatedTeam, limit)
+DisplayChatScores(scores[][], defeatedTeam, limit)
 {
 	if (scores[0][1] > 0) return;
 
@@ -197,11 +197,11 @@ DisplayChatScores(&scores[][], defeatedTeam, limit)
 	{
 		GetClientName(scores[i][0], playerName, sizeof(playerName));
 		//TODO get space buffer
-		PrintToChatAll("\x07A9A9A9[%d]       %d       %s", i+1, scores[i][1], sPlayerName);
+		PrintToChatAll("\x07A9A9A9[%d]       %d       %s", i+1, scores[i][1], playerName);
 	}
 }
 
-DisplayMenuScores(&scores[][])
+DisplayMenuScores(scores[][])
 {
 }
 
