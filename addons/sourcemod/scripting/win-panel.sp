@@ -33,24 +33,24 @@ public OnPluginStart()
 	HookEventEx("teamplay_round_start", Event_TeamPlayRoundStart);
 	HookEventEx("teamplay_restart_round", Event_TFRestartRound);
 	HookEventEx("teamplay_win_panel", Event_TeamPlayWinPanel);
-	
+
 	g_OffsetScore = FindSendPropOffs("CTFPlayerResource", "m_iTotalScore");
 	g_OffsetClass = FindSendPropOffs("CTFPlayerResource", "m_iPlayerClass");
-	
+
 	if (g_OffsetScore == -1 || g_OffsetClass == -1)
 		SetFailState("Cant find proper offsets");
-		
+
 	LoadTranslations("win-panel.phrases");
-	
+
 	CreateConVar("sm_win_panel_version", PLUGIN_VERSION, "Plugin Version",
-		FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED |
-		FCVAR_NOTIFY | FCVAR_DONTRECORD);
-	
+			FCVAR_PLUGIN | FCVAR_SPONLY | FCVAR_REPLICATED |
+			FCVAR_NOTIFY | FCVAR_DONTRECORD);
+
 	g_Cvar_UserChat = CreateConVar("sm_win_panel_usechat", "0", "Use chat instead of a panel.", FCVAR_DONTRECORD, true, 0.0, true, 1.0);
-	
+
 	g_Cvar_Maxrounds = FindConVar("mp_maxrounds");
 	g_Cvar_StartRounds = FindConVar("sm_mapvote_startround");
-	
+
 	mapchooser = LibraryExists("mapchooser");
 }
 
@@ -62,7 +62,7 @@ public OnConfigsExecuted()
 public OnMapStart()
 {
 	g_EntPlayerManager = FindEntityByClassname(-1, "tf_player_manager");
-	
+
 	if (g_EntPlayerManager == -1)
 		SetFailState("Cant find tf_player_manager entity");
 }
@@ -74,7 +74,7 @@ public OnLibraryRemoved(const String:name[])
 		mapchooser = false;
 	}
 }
- 
+
 public OnLibraryAdded(const String:name[])
 {
 	if (StrEqual(name, "mapchooser"))
@@ -95,14 +95,14 @@ public bool:OnClientConnect(client, String:rejectmsg[], maxlen)
 }
 
 public Event_TeamPlayRoundStart(Handle:event, const String:name[],
-							   bool:dontBroadcast)
+		bool:dontBroadcast)
 {
 	for (new i = 1; i <= MaxClients; i++)
 		g_BeginScore[i] = GetClientScore(i);
 }
 
 public Event_TeamPlayWinPanel(Handle:event, const String:name[],
-							 bool:dontBroadcast)
+		bool:dontBroadcast)
 {
 	if (GetEventInt(event, "round_complete") == 1)
 	{
@@ -120,49 +120,19 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:defeatedTeam)
 {
 	new scores[MaxClients][2];
 	new RowCount;
-	
+
 	CalculateScores(scores, defeatedTeam);
 	SortCustom2D(scores, MaxClients, SortScoreDesc);
-	
+
 	if (GetConVarBool(g_Cvar_UserChat))
 	{
-		decl String:sPlayerName[MAX_NAME_LENGTH];
-		
-		// Draw three top players
-		//
-		RowCount = 0;
-		for (new n = 0; n <= 2; n++)
-		{
-			if (scores[n][1] > 0)
-			{
-				if (RowCount == 0)
-				{
-					// \x07 followed by a hex code in RRGGBB
-					if (defeatedTeam == 2)
-					{
-						PrintToChatAll("\x07A9A9A9TOP PLAYERS ON \x07FF0000RED");
-					}
-					else
-					{
-						PrintToChatAll("\x07A9A9A9TOP PLAYERS ON \x070000FFBLU");
-					}
-						
-					PrintToChatAll("\x07A9A9A9[#] (score) (name)");
-				}
-				
-				GetClientName(scores[n][0], sPlayerName, sizeof(sPlayerName));
-	
-				PrintToChatAll("\x07A9A9A9[%d]       %d       %s", n+1, scores[n][1], sPlayerName);
-				RowCount++;
-			}
-		}
-
+		DisplayChatScores(scores, defeatedTeam, 3);
 	}
 	else
 	{
 		if (IsVoteInProgress()) return;
 		if (CheckMaxRounds(g_TotalRounds)) return;
-	
+
 		// Create and show Win Panel
 		//
 		for (new j = 1; j <= MaxClients; j++)
@@ -170,9 +140,9 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:defeatedTeam)
 			if (IsClientInGame(j))
 			{
 				new Handle:hPanel = CreatePanel();
-				
+
 				Draw_PanelHeader(hPanel, defeatedTeam, j);
-				
+
 				// Draw three top players
 				//
 				RowCount = 0;
@@ -184,12 +154,12 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:defeatedTeam)
 						RowCount++;
 					}
 				}
-				
+
 				// Don't show anything if there are not top players
 				//
 				if (RowCount > 0)
 					SendPanelToClient(hPanel, j, Handler_DoNothing, 12);
-				
+
 				CloseHandle(hPanel);
 			}
 		}
@@ -210,6 +180,29 @@ CalculateScores(&scores[][], any:defeatedTeam)
 			scores[i][1] = -1;
 	}
 
+}
+
+DisplayChatScores(&scores[][], defeatedTeam, limit)
+{
+	if (scores[0][1] > 0) return;
+
+	decl String:playerName[MAX_NAME_LENGTH];
+
+	// \x07 followed by a hex code in RRGGBB
+	PrintToChatAll("\x07A9A9A9TOP PLAYERS ON %s", (defeatedTeam == 2) ? "\x07FF0000RED" : "\x070000FFBLU");
+	PrintToChatAll("\x07A9A9A9[#] (score) (name)");
+
+	//Only show the first few specified by limit
+	for (new i = 0; i < limit; i++)
+	{
+		GetClientName(scores[i][0], playerName, sizeof(playerName));
+		//TODO get space buffer
+		PrintToChatAll("\x07A9A9A9[%d]       %d       %s", i+1, scores[i][1], sPlayerName);
+	}
+}
+
+DisplayMenuScores(&scores[][])
+{
 }
 
 bool:CheckMaxRounds(roundcount)
