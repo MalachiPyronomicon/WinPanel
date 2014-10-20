@@ -130,39 +130,7 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:defeatedTeam)
 	}
 	else
 	{
-		if (IsVoteInProgress()) return;
-		if (CheckMaxRounds(g_TotalRounds)) return;
-
-		// Create and show Win Panel
-		//
-		for (new j = 1; j <= MaxClients; j++)
-		{
-			if (IsClientInGame(j))
-			{
-				new Handle:hPanel = CreatePanel();
-
-				Draw_PanelHeader(hPanel, defeatedTeam, j);
-
-				// Draw three top players
-				//
-				RowCount = 0;
-				for (new n = 0; n <= 2; n++)
-				{
-					if (scores[n][1] > 0)
-					{
-						Draw_PanelPlayer(hPanel, scores[n][1], scores[n][0], j);
-						RowCount++;
-					}
-				}
-
-				// Don't show anything if there are not top players
-				//
-				if (RowCount > 0)
-					SendPanelToClient(hPanel, j, Handler_DoNothing, 12);
-
-				CloseHandle(hPanel);
-			}
-		}
+		DisplayMenuScores(scores, defeatedTeam, 3);
 	}
 }
 
@@ -184,7 +152,7 @@ CalculateScores(scores[][], any:defeatedTeam)
 
 DisplayChatScores(scores[][], defeatedTeam, limit)
 {
-	if (scores[0][1] > 0) return;
+	if (scores[0][1] > 0) return; // Don't show anything if there are not top players
 
 	decl String:playerName[MAX_NAME_LENGTH];
 
@@ -201,8 +169,31 @@ DisplayChatScores(scores[][], defeatedTeam, limit)
 	}
 }
 
-DisplayMenuScores(scores[][])
+DisplayMenuScores(scores[][], defeatedTeam, limit)
 {
+	if (IsVoteInProgress()) return;
+	if (CheckMaxRounds(g_TotalRounds)) return;
+	if (scores[0][1] > 0) return; // Don't show anything if there are not top players
+
+	// Create and show Win Panel
+	for (new client = 1; client <= MaxClients; client++)
+	{
+		if (!IsClientInGame(client)) continue;
+
+		new Handle:hPanel = CreatePanel();
+		Draw_PanelHeader(hPanel, defeatedTeam, client);
+
+		//Only show the first few specified by limit
+		for (new i = 0; i <= limit; i++)
+		{
+			if (scores[i][1] > 0)
+			{
+				Draw_PanelPlayer(hPanel, scores[i][1], scores[i][0], client);
+			}
+		}
+
+		CloseHandle(hPanel);
+	}
 }
 
 bool:CheckMaxRounds(roundcount)
