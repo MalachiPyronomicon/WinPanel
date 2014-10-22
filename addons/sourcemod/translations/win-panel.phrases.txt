@@ -60,4 +60,54 @@
 		"en"		"Engineer     "
 		"ru"		"Инженер         "
 	}
+	"chattitle"
+	{
+		"en"		"TOP SCORES ON "
+		"ru"		"Лучшие игроки в команде "
+	}
+	"chatteamred"
+	{
+		"en"		"RED"
+		"ru"		"Красных"
+	}
+	"chatteamblu"
+	{
+		"en"		"BLU"
+		"ru"		"Синих"
+	}
+	"chatheader"
+	{
+		"en"		"Rank Score Name"
+		"ru"		"  #  Очки  Имя"
+	}
+	"chatrankscore1"
+	{
+		"en"		"     "
+		"ru"		"     "
+	}
+	"chatscorename1"
+	{
+		"en"		"    "
+		"ru"		"    "
+	}
+	"chatrankscore10"
+	{
+		"en"		"    "
+		"ru"		"    "
+	}
+	"chatscorename10"
+	{
+		"en"		"      "
+		"ru"		"      "
+	}
+	"chatrankscore100"
+	{
+		"en"		"   "
+		"ru"		"   "
+	}
+	"chatscorename100"
+	{
+		"en"		"        "
+		"ru"		"        "
+	}
 }

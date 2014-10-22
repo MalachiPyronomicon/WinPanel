@@ -1,14 +1,26 @@
+// *** PRAGMAS ***
 #pragma semicolon 1
 
+
+// *** INCLUDES ***
 #include <sourcemod>
 #include <sdktools>
 
+
+// *** DEFINES ***
 #undef REQUIRE_PLUGIN
 #include <mapchooser>
 #define REQUIRE_PLUGIN
+#define PLUGIN_VERSION "1.4.3"
+#define WINPANEL_TIMER_DELAY 0.25
+#define WINPANEL_HEXCOLOR_TITLE "\x07FF8000"					// \x07 followed by a hex code in RRGGBB
+#define WINPANEL_HEXCOLOR_HEADER "\x07C36200"
+#define WINPANEL_HEXCOLOR_SCORES "\x07909020"
+#define WINPANEL_HEXCOLOR_RED "\x07FF3D3D"						// Valve TF2 Red=FF3D3D
+#define WINPANEL_HEXCOLOR_BLUE "\x079ACDFF"						// Valve TF2 Blue=9ACDFF
 
-#define PLUGIN_VERSION "1.4.2"
 
+// *** INFO ***
 public Plugin:myinfo = 
 {
 	name = "Win panel for losing team",
@@ -17,7 +29,8 @@ public Plugin:myinfo =
 	version = PLUGIN_VERSION
 };
 
-// GLOBALS
+
+// *** GLOBALS ***
 new bool:mapchooser;
 new g_BeginScore[MAXPLAYERS + 1];
 new g_EntPlayerManager;
@@ -27,6 +40,7 @@ new g_TotalRounds;
 new Handle:g_Cvar_Maxrounds = INVALID_HANDLE;
 new Handle:g_Cvar_StartRounds = INVALID_HANDLE;
 new Handle:g_hUseChat = INVALID_HANDLE;				// Handle - Convar to choose between chat and vote-style panel
+
 
 public OnPluginStart()
 {
@@ -112,7 +126,7 @@ public Event_TeamPlayWinPanel(Handle:event, const String:name[],
 	if (DefeatedTeam == 2 || DefeatedTeam == 3)
 	{
 		DefeatedTeam = (DefeatedTeam == 2) ? 3 : 2;
-		CreateTimer(0.1, Timer_ShowWinPanel, DefeatedTeam);
+		CreateTimer(WINPANEL_TIMER_DELAY, Timer_ShowWinPanel, DefeatedTeam);
 	}
 }
 
@@ -142,7 +156,7 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 	
 	SortCustom2D(Scores, MaxClients, SortScoreDesc);
 	
-	if (g_hUseChat)
+	if (bUseChat)
 	{
 		decl String:sPlayerName[MAX_NAME_LENGTH];
 		
@@ -155,22 +169,59 @@ public Action:Timer_ShowWinPanel(Handle:timer, any:DefeatedTeam)
 			{
 				if (RowCount == 0)
 				{
-					// \x07 followed by a hex code in RRGGBB
 					if (DefeatedTeam == 2)
 					{
-						PrintToChatAll("\x07A9A9A9TOP PLAYERS ON \x07FF0000RED");
+						for (new j = 1; j <= MaxClients; j++)
+						{
+							if (IsClientInGame(j))
+							{
+								PrintToChat(j, "%s%T%s%T", WINPANEL_HEXCOLOR_TITLE, "chattitle", j, WINPANEL_HEXCOLOR_RED, "chatteamred", j);
+							}
+						}
 					}
 					else
 					{
-						PrintToChatAll("\x07A9A9A9TOP PLAYERS ON \x070000FFBLU");
+						for (new j = 1; j <= MaxClients; j++)
+						{
+							if (IsClientInGame(j))
+							{
+								PrintToChat(j, "%s%T%s%T", WINPANEL_HEXCOLOR_TITLE, "chattitle", j, WINPANEL_HEXCOLOR_BLUE, "chatteamblu", j);
+							}
+						}
 					}
 						
-					PrintToChatAll("\x07A9A9A9[#] (score) (name)");
+					for (new j = 1; j <= MaxClients; j++)
+					{
+						if (IsClientInGame(j))
+						{
+							PrintToChat(j, "%s%T", WINPANEL_HEXCOLOR_HEADER, "chatheader", j);
+						}
+					}
 				}
 				
 				GetClientName(Scores[n][0], sPlayerName, sizeof(sPlayerName));
 	
-				PrintToChatAll("\x07A9A9A9[%d]       %d       %s", n+1, Scores[n][1], sPlayerName);
+				for (new j = 1; j <= MaxClients; j++)
+				{
+					if (IsClientInGame(j))
+					{
+						// Allow for score's number of places
+						if (Scores[n][1] < 10)
+						{
+							PrintToChat(j, "%s  [%d]%T%d%T%s", WINPANEL_HEXCOLOR_SCORES, n+1, "chatrankscore1", j, Scores[n][1], "chatscorename1", j, sPlayerName);
+						}
+						else
+						if (Scores[n][1] < 100)
+						{
+							PrintToChat(j, "%s  [%d]%T%d%T%s", WINPANEL_HEXCOLOR_SCORES, n+1, "chatrankscore10", j, Scores[n][1], "chatscorename10", j, sPlayerName);
+						}
+						else
+						{
+							PrintToChat(j, "%s  [%d]%T%d%T%s", WINPANEL_HEXCOLOR_SCORES, n+1, "chatrankscore100", j, Scores[n][1], "chatscorename100", j, sPlayerName);
+						}
+					}
+				}
+
 				RowCount++;
 			}
 		}
